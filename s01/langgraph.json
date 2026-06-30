@@ -1,0 +1,1 @@
+{"dependencies": ["."], "graphs": {"bundleiq": "./bundleiq/agent.py:graph"}, "env": "../../.env"}
