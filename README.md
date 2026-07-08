@@ -24,7 +24,7 @@ Session starter code is released one session at a time. Today's folder:
 To run after completing the TODOs:
 
 ```bash
-cd s01/
+cd s01/starter/
 python -m bundleiq.agent
 ```
 
