@@ -1,0 +1,322 @@
+[
+  {
+    "id": "S01",
+    "query": "What is the price of TeleConnect's Daily 1GB mobile plan?",
+    "expected_route": "SIMPLE",
+    "category": "mobile_plans",
+    "criteria": ["179", "Daily 1GB"],
+    "must_not_contain": ["I cannot", "I don't know", "Airtel", "Jio"]
+  },
+  {
+    "id": "S02",
+    "query": "How much does the Daily 2GB mobile plan cost at TeleConnect?",
+    "expected_route": "SIMPLE",
+    "category": "mobile_plans",
+    "criteria": ["299", "Daily 2GB"],
+    "must_not_contain": ["I cannot", "I don't know", "Airtel", "Jio"]
+  },
+  {
+    "id": "S03",
+    "query": "What is the price of the Daily 3GB 5G plan at TeleConnect?",
+    "expected_route": "SIMPLE",
+    "category": "mobile_plans",
+    "criteria": ["399", "Daily 3GB"],
+    "must_not_contain": ["I cannot", "I don't know", "Airtel", "Jio"]
+  },
+  {
+    "id": "S04",
+    "query": "Tell me about TeleConnect's Unlimited 5G mobile plan.",
+    "expected_route": "SIMPLE",
+    "category": "mobile_plans",
+    "criteria": ["599", "Unlimited 5G"],
+    "must_not_contain": ["I cannot", "I don't know", "Airtel", "Jio"]
+  },
+  {
+    "id": "S05",
+    "query": "What 5G mobile plans does TeleConnect offer?",
+    "expected_route": "SIMPLE",
+    "category": "mobile_plans",
+    "criteria": ["5G", "599"],
+    "must_not_contain": ["I cannot", "I don't know", "Airtel", "Jio"]
+  },
+  {
+    "id": "S06",
+    "query": "How much does TeleConnect's Basic 50Mbps broadband cost per month?",
+    "expected_route": "SIMPLE",
+    "category": "broadband_plans",
+    "criteria": ["499", "50"],
+    "must_not_contain": ["I cannot", "I don't know", "Airtel", "Jio"]
+  },
+  {
+    "id": "S07",
+    "query": "What is the monthly price for TeleConnect's Standard 100Mbps broadband?",
+    "expected_route": "SIMPLE",
+    "category": "broadband_plans",
+    "criteria": ["799", "100"],
+    "must_not_contain": ["I cannot", "I don't know", "Airtel", "Jio"]
+  },
+  {
+    "id": "S08",
+    "query": "Tell me about TeleConnect's Fast 200Mbps broadband plan.",
+    "expected_route": "SIMPLE",
+    "category": "broadband_plans",
+    "criteria": ["1099", "200"],
+    "must_not_contain": ["I cannot", "I don't know", "Airtel", "Jio"]
+  },
+  {
+    "id": "S09",
+    "query": "What does TeleConnect's Ultra 500Mbps broadband plan cost?",
+    "expected_route": "SIMPLE",
+    "category": "broadband_plans",
+    "criteria": ["1599", "500"],
+    "must_not_contain": ["I cannot", "I don't know", "Airtel", "Jio"]
+  },
+  {
+    "id": "S10",
+    "query": "Which TeleConnect broadband plan comes with free installation?",
+    "expected_route": "SIMPLE",
+    "category": "broadband_plans",
+    "criteria": ["Ultra", "free"],
+    "must_not_contain": ["I cannot", "I don't know", "Airtel", "Jio"]
+  },
+  {
+    "id": "S11",
+    "query": "What current promotions are available for TeleConnect mobile plans?",
+    "expected_route": "SIMPLE",
+    "category": "promotions",
+    "criteria": ["Monsoon Data Offer"],
+    "must_not_contain": ["I cannot", "I don't know", "Airtel", "Jio"]
+  },
+  {
+    "id": "S12",
+    "query": "Tell me about the Monsoon Data Offer from TeleConnect.",
+    "expected_route": "SIMPLE",
+    "category": "promotions",
+    "criteria": ["5GB", "Monsoon"],
+    "must_not_contain": ["I cannot", "I don't know", "Airtel", "Jio"]
+  },
+  {
+    "id": "S13",
+    "query": "Is there a cashback offer for TeleConnect broadband plans?",
+    "expected_route": "SIMPLE",
+    "category": "promotions",
+    "criteria": ["Broadband Cashback", "500"],
+    "must_not_contain": ["I cannot", "I don't know", "Airtel", "Jio"]
+  },
+  {
+    "id": "S14",
+    "query": "What promotions are available on TeleConnect's higher-speed broadband plans?",
+    "expected_route": "SIMPLE",
+    "category": "promotions",
+    "criteria": ["Broadband Cashback"],
+    "must_not_contain": ["I cannot", "I don't know", "Airtel", "Jio"]
+  },
+  {
+    "id": "S15",
+    "query": "Does TeleConnect's Daily 3GB plan support 5G?",
+    "expected_route": "SIMPLE",
+    "category": "plan_features",
+    "criteria": ["5G", "Daily 3GB"],
+    "must_not_contain": ["I cannot", "I don't know", "Airtel", "Jio"]
+  },
+  {
+    "id": "S16",
+    "query": "How much data per day do I get with the Unlimited 5G mobile plan?",
+    "expected_route": "SIMPLE",
+    "category": "plan_features",
+    "criteria": ["2.5", "Unlimited 5G"],
+    "must_not_contain": ["I cannot", "I don't know", "Airtel", "Jio"]
+  },
+  {
+    "id": "S17",
+    "query": "What is the validity period of TeleConnect's Unlimited 5G mobile plan?",
+    "expected_route": "SIMPLE",
+    "category": "plan_features",
+    "criteria": ["56", "Unlimited 5G"],
+    "must_not_contain": ["I cannot", "I don't know", "Airtel", "Jio"]
+  },
+  {
+    "id": "S18",
+    "query": "Does TeleConnect's Basic 50Mbps broadband plan charge an installation fee?",
+    "expected_route": "SIMPLE",
+    "category": "plan_features",
+    "criteria": ["500", "installation"],
+    "must_not_contain": ["I cannot", "I don't know", "Airtel", "Jio"]
+  },
+  {
+    "id": "S19",
+    "query": "What type of calling is included in TeleConnect's mobile plans?",
+    "expected_route": "SIMPLE",
+    "category": "plan_features",
+    "criteria": ["unlimited"],
+    "must_not_contain": ["I cannot", "I don't know", "Airtel", "Jio"]
+  },
+  {
+    "id": "S20",
+    "query": "What type of data does TeleConnect's broadband offer — capped or unlimited?",
+    "expected_route": "SIMPLE",
+    "category": "plan_features",
+    "criteria": ["unlimited"],
+    "must_not_contain": ["I cannot", "I don't know", "Airtel", "Jio"]
+  },
+  {
+    "id": "C01",
+    "query": "Which TeleConnect mobile plan is best for heavy video streaming all day?",
+    "expected_route": "COMPLEX",
+    "category": "complex",
+    "criteria": ["1800-123-4567"],
+    "must_not_contain": []
+  },
+  {
+    "id": "C02",
+    "query": "Should I switch from the Daily 2GB to the Daily 3GB 5G plan?",
+    "expected_route": "COMPLEX",
+    "category": "complex",
+    "criteria": ["TeleConnect advisor"],
+    "must_not_contain": []
+  },
+  {
+    "id": "C03",
+    "query": "Can you recommend a broadband plan for a family of four that streams 4K content?",
+    "expected_route": "COMPLEX",
+    "category": "complex",
+    "criteria": ["1800-123-4567"],
+    "must_not_contain": []
+  },
+  {
+    "id": "C04",
+    "query": "Is it worth upgrading from Basic 50Mbps to Fast 200Mbps broadband?",
+    "expected_route": "COMPLEX",
+    "category": "complex",
+    "criteria": ["TeleConnect advisor"],
+    "must_not_contain": []
+  },
+  {
+    "id": "C05",
+    "query": "What is the most cost-effective TeleConnect plan for someone who uses very little data?",
+    "expected_route": "COMPLEX",
+    "category": "complex",
+    "criteria": ["1800-123-4567"],
+    "must_not_contain": []
+  },
+  {
+    "id": "C06",
+    "query": "Compare the Daily 1GB and Daily 2GB mobile plans and tell me which suits a student.",
+    "expected_route": "COMPLEX",
+    "category": "complex",
+    "criteria": ["TeleConnect advisor"],
+    "must_not_contain": []
+  },
+  {
+    "id": "C07",
+    "query": "I travel frequently across India and need the best value mobile plan. What do you recommend?",
+    "expected_route": "COMPLEX",
+    "category": "complex",
+    "criteria": ["1800-123-4567"],
+    "must_not_contain": []
+  },
+  {
+    "id": "C08",
+    "query": "What plan combination would work best for a small home office with two people who video call all day?",
+    "expected_route": "COMPLEX",
+    "category": "complex",
+    "criteria": ["TeleConnect advisor"],
+    "must_not_contain": []
+  },
+  {
+    "id": "C09",
+    "query": "Should I choose the Fast 200Mbps or Ultra 500Mbps broadband plan for competitive online gaming?",
+    "expected_route": "COMPLEX",
+    "category": "complex",
+    "criteria": ["1800-123-4567"],
+    "must_not_contain": []
+  },
+  {
+    "id": "C10",
+    "query": "Which current TeleConnect promotional offer gives me the best savings based on my usage?",
+    "expected_route": "COMPLEX",
+    "category": "complex",
+    "criteria": ["TeleConnect advisor"],
+    "must_not_contain": []
+  },
+  {
+    "id": "O01",
+    "query": "What is the weather forecast for Mumbai tomorrow?",
+    "expected_route": "OUT_OF_SCOPE",
+    "category": "oos",
+    "criteria": ["TeleConnect products and services"],
+    "must_not_contain": []
+  },
+  {
+    "id": "O02",
+    "query": "Can you write a poem about the monsoon season in India?",
+    "expected_route": "OUT_OF_SCOPE",
+    "category": "oos",
+    "criteria": ["TeleConnect products and services"],
+    "must_not_contain": []
+  },
+  {
+    "id": "O03",
+    "query": "How does TeleConnect's network compare to Airtel's coverage?",
+    "expected_route": "OUT_OF_SCOPE",
+    "category": "oos",
+    "criteria": ["TeleConnect products and services"],
+    "must_not_contain": []
+  },
+  {
+    "id": "O04",
+    "query": "What are some good restaurants near me in Bangalore?",
+    "expected_route": "OUT_OF_SCOPE",
+    "category": "oos",
+    "criteria": ["TeleConnect products and services"],
+    "must_not_contain": []
+  },
+  {
+    "id": "O05",
+    "query": "Can you help me book a train ticket to Chennai?",
+    "expected_route": "OUT_OF_SCOPE",
+    "category": "oos",
+    "criteria": ["TeleConnect products and services"],
+    "must_not_contain": []
+  },
+  {
+    "id": "O06",
+    "query": "What is the share price of Reliance Industries today?",
+    "expected_route": "OUT_OF_SCOPE",
+    "category": "oos",
+    "criteria": ["TeleConnect products and services"],
+    "must_not_contain": []
+  },
+  {
+    "id": "O07",
+    "query": "My laptop keeps disconnecting from WiFi. How do I fix it?",
+    "expected_route": "OUT_OF_SCOPE",
+    "category": "oos",
+    "criteria": ["TeleConnect products and services"],
+    "must_not_contain": []
+  },
+  {
+    "id": "O08",
+    "query": "Tell me a joke about software engineers.",
+    "expected_route": "OUT_OF_SCOPE",
+    "category": "oos",
+    "criteria": ["TeleConnect products and services"],
+    "must_not_contain": []
+  },
+  {
+    "id": "O09",
+    "query": "What is the best smartphone to buy under Rs. 20,000?",
+    "expected_route": "OUT_OF_SCOPE",
+    "category": "oos",
+    "criteria": ["TeleConnect products and services"],
+    "must_not_contain": []
+  },
+  {
+    "id": "O10",
+    "query": "Can you help me write a professional email to my manager?",
+    "expected_route": "OUT_OF_SCOPE",
+    "category": "oos",
+    "criteria": ["TeleConnect products and services"],
+    "must_not_contain": []
+  }
+]
