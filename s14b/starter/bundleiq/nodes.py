@@ -1,9 +1,23 @@
 """
-bundleiq/nodes.py  (Session 14b — starter)
---------------------------------------------
-The guard functions below have stub skeletons — complete the TODOs.
-Everything else (compliance, specialist agents, supervisor) is unchanged from S14.
+bundleiq/nodes.py  (Session 14b)
+---------------------------------
+S14b replaces Llama Prompt Guard 2 (S14) with LlamaGuard 3 8B.
+
+The two-layer guard architecture is unchanged from S14:
+  Layer 1 — regex: PII (DPDP Act 2023) + injection keywords (< 1 ms, zero cost)
+  Layer 2 — LlamaGuard 3 8B: 13 safety categories, catches rephrased attacks
+
+Key change in _llamaguard_safe():
+  S14:  model returns a float string → threshold comparison → (bool, float)
+  S14b: model returns "safe" or "unsafe\\nS<n>" → parse categories → bool
+
+S6 exclusion — BundleIQ passes S6-only findings through to the router:
+  LlamaGuard S6 (Specialized Advice) catches "Which plan is best for me?"
+  BundleIQ's COMPLEX routing already handles this correctly: COMPLEX →
+  escalate → TeleConnect advisor. Blocking at the guard gives worse UX.
+  We block on all other categories (S1–S5, S7–S13).
 """
+import base64
 import re
 import sqlite3
 import unicodedata
@@ -42,77 +56,132 @@ _INVISIBLE_UNICODE_RE = re.compile(
 
 
 # ---------------------------------------------------------------------------
-# S14b TODO: implement the four guard functions below
+# S14b: Input Guard
 # ---------------------------------------------------------------------------
+
+def _try_decode(text: str) -> str:
+    """Decode Base64 or hex-encoded text before guard checks.
+    Catches obfuscation attacks like base64("ignore previous instructions").
+    Returns decoded text if decoding succeeds and changes the input; original text otherwise.
+    """
+    stripped = text.strip()
+    # Base64
+    try:
+        padding = (4 - len(stripped) % 4) % 4
+        decoded = base64.b64decode(stripped + "=" * padding).decode("utf-8", errors="strict")
+        if decoded != stripped and len(decoded) >= 8 and decoded.isprintable():
+            return decoded
+    except Exception:
+        pass
+    # Hex
+    try:
+        hex_clean = stripped.replace(" ", "")
+        if len(hex_clean) >= 16 and all(c in "0123456789abcdefABCDEF" for c in hex_clean):
+            decoded = bytes.fromhex(hex_clean).decode("utf-8", errors="strict")
+            if decoded.isprintable():
+                return decoded
+    except Exception:
+        pass
+    return text
+
 
 def _llamaguard_safe(message: str) -> bool:
     """Call LlamaGuard 3 8B and return True if the message is safe.
 
     LlamaGuard 3 8B response format:
-      "safe"              — message passes all 13 safety checks → return True
-      "unsafe\\nS6"      — only Specialized Advice flagged → return True (router handles it)
-      "unsafe\\nS13"     — system prompt issue → return False
-      "unsafe\\nS6,S13"  — S6 + another category → return False
+      "safe"            — message passes all 13 safety checks
+      "unsafe\\nS6"    — flagged for one category (Specialized Advice)
+      "unsafe\\nS1,S13" — flagged for multiple categories
 
-    TODO:
-      1. Invoke llamaguard_llm with [HumanMessage(content=message)]
-      2. Strip and lowercase result.content
-      3. If it starts with "safe", print a log line and return True
-      4. Otherwise parse categories: split on "\\n", then split on ","
-         to get a set of category codes like {"s6"}, {"s1", "s13"}, etc.
-      5. Compute non_s6 = categories - {"s6"}
-         If non_s6 is empty, the only flag is S6 (Specialized Advice) →
-         return True (COMPLEX routing handles it correctly)
-         Otherwise return False (block)
-      6. Wrap the whole thing in try/except.
-         On any exception, print a warning and return True (fail-open).
+    S6 exclusion — BundleIQ intentionally handles personalised plan queries:
+      LlamaGuard S6 (Specialized Advice) catches "Which plan is best for me?"
+      BundleIQ's COMPLEX → escalate routing already handles this correctly.
+      If we block at the guard, the customer gets a generic blocked response
+      instead of the more helpful escalation path to a TeleConnect advisor.
+      So we pass S6-only findings through — the router handles them properly.
+
+    Fail-open design: if LlamaGuard is unreachable, log a warning and let
+    the message through. Service availability beats one missed safety check.
     """
-    raise NotImplementedError("TODO: implement _llamaguard_safe()")
+    try:
+        result  = llamaguard_llm.invoke([HumanMessage(content=message)])
+        verdict = result.content.strip().lower()
+
+        if verdict.startswith("safe"):
+            print(f"[BundleIQ] LlamaGuard: {verdict!r} → safe")
+            return True
+
+        categories: set[str] = set()
+        if "\n" in verdict:
+            raw_cats = verdict.split("\n", 1)[1]
+            categories = {c.strip() for c in raw_cats.split(",")}
+
+        # S6 (Specialized Advice) is handled by COMPLEX routing — don't block
+        non_s6 = categories - {"s6"}
+        safe = len(non_s6) == 0
+        print(f"[BundleIQ] LlamaGuard: {verdict!r} → {'safe (S6 handled by router)' if safe else 'UNSAFE'}")
+        return safe
+    except Exception as e:
+        print(f"[BundleIQ] LlamaGuard unavailable — defaulting to safe: {e}")
+        return True
 
 
 @traceable(name="input_guard")
 def guard(state: BundleIQState) -> dict:
     """Inspect customer_message for PII, injection patterns, and unsafe content.
 
-    Two-layer defence:
-      Layer 1 (regex, < 1 ms):
-        1a. NFKD-normalize the raw message.
-        1b. Loop through _pii_compiled. If any matches, return {"blocked_reason": "pii"}.
-        1c. Loop through _injection_compiled. If any matches, return {"blocked_reason": "injection"}.
-      Layer 2 (LlamaGuard 3 8B, semantic):
-        2.  Call _llamaguard_safe(msg).
-            If False, return {"blocked_reason": "llamaguard"}.
-
-    Return {"blocked_reason": ""} if all layers pass.
-    Print a short log line when something is blocked.
-
-    TODO: implement this function.
+    Returns {"blocked_reason": ""} for a clean message, or
+    {"blocked_reason": "pii"|"injection"|"llamaguard"} when blocked.
     """
-    raise NotImplementedError("TODO: implement guard()")
+    raw = state["customer_message"]
+    msg = unicodedata.normalize("NFKD", raw)
+
+    decoded = _try_decode(msg)
+    if decoded != msg:
+        print(f"[BundleIQ] Guard: obfuscated input decoded ({len(msg)}→{len(decoded)} chars)")
+        msg = decoded
+
+    for rx in _pii_compiled:
+        if rx.search(msg):
+            print("[BundleIQ] Guard: PII detected — blocked")
+            return {"blocked_reason": "pii"}
+
+    for rx in _injection_compiled:
+        if rx.search(msg):
+            print("[BundleIQ] Guard: injection detected — blocked")
+            return {"blocked_reason": "injection"}
+
+    if not _llamaguard_safe(msg):
+        print("[BundleIQ] Guard: LlamaGuard flagged message — blocked")
+        return {"blocked_reason": "llamaguard"}
+
+    return {"blocked_reason": ""}
 
 
 def blocked(state: BundleIQState) -> dict:
-    """Return the appropriate canned response for a blocked message.
-
-    TODO:
-      - If blocked_reason is "pii",        set response = GUARD_PII_RESPONSE.
-      - If blocked_reason is "llamaguard", set response = GUARD_UNSAFE_RESPONSE.
-      - Otherwise (injection),             set response = GUARD_BLOCKED_RESPONSE.
-      - Return response, specialist="guard", and updated history.
-    """
-    raise NotImplementedError("TODO: implement blocked()")
+    reason = state.get("blocked_reason", "injection")
+    if reason == "pii":
+        response = GUARD_PII_RESPONSE
+    elif reason == "llamaguard":
+        response = GUARD_UNSAFE_RESPONSE
+    else:
+        response = GUARD_BLOCKED_RESPONSE
+    return {
+        "response":   response,
+        "specialist": "guard",
+        "history": state.get("history", []) + [
+            {"role": "user",      "content": state["customer_message"]},
+            {"role": "assistant", "content": response},
+        ],
+    }
 
 
 def route_guard(state: BundleIQState) -> str:
-    """Return "blocked" if blocked_reason is set, else "classify".
-
-    TODO: check state.get("blocked_reason") and return the correct string.
-    """
-    raise NotImplementedError("TODO: implement route_guard()")
+    return "blocked" if state.get("blocked_reason") else "classify"
 
 
 # ---------------------------------------------------------------------------
-# Specialist agent helpers (unchanged from S14 — do not edit)
+# Specialist agent helpers (unchanged from S14)
 # ---------------------------------------------------------------------------
 
 def _agent_respond(state: BundleIQState, system_prompt: str, label: str) -> dict:
@@ -190,7 +259,7 @@ _promotions_agent = create_promotions_agent()
 
 
 # ---------------------------------------------------------------------------
-# Compliance helpers (unchanged from S14 — do not edit)
+# Compliance helpers (unchanged from S14)
 # ---------------------------------------------------------------------------
 
 def _load_valid_prices() -> set:
@@ -213,11 +282,11 @@ def _load_valid_prices() -> set:
 
 
 def _extract_prices(text: str) -> list:
-    matches = re.findall(r"(?:Rs\.|₹)\s*(\d+(?:,\d+)*)", text, re.IGNORECASE)
+    matches = re.findall(r"(?:Rs\.|₹)\s*(\d+(?:,\d+)*(?:\.\d+)?)", text, re.IGNORECASE)
     result = []
     for m in matches:
         try:
-            result.append(int(m.replace(",", "")))
+            result.append(round(float(m.replace(",", ""))))
         except ValueError:
             pass
     return result
@@ -294,7 +363,7 @@ _compliance_agent = create_compliance_agent()
 
 
 # ---------------------------------------------------------------------------
-# Supervisor nodes (unchanged from S14 — do not edit)
+# Supervisor nodes (unchanged from S14)
 # ---------------------------------------------------------------------------
 
 def classify(state: BundleIQState) -> dict:

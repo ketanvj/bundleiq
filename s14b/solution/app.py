@@ -15,10 +15,28 @@ Architecture:
 Run:
     streamlit run app.py   (from inside s14b/solution/)
 """
+import hashlib
+import re as _re
 import sys
 import time
 from pathlib import Path
 from uuid import uuid4
+
+_SCRIPT_RE  = _re.compile(r"<script[^>]*>.*?</script>", _re.IGNORECASE | _re.DOTALL)
+_STYLE_RE   = _re.compile(r"<style[^>]*>.*?</style>",  _re.IGNORECASE | _re.DOTALL)
+_HTML_TAG_RE = _re.compile(r"<[^>]+>")
+
+
+def _sanitise(text: str) -> str:
+    """Strip script/style blocks and all HTML tags from LLM response before rendering."""
+    text = _SCRIPT_RE.sub("", text)
+    text = _STYLE_RE.sub("", text)
+    return _HTML_TAG_RE.sub("", text)
+
+
+def _pseudonymise(raw: str) -> str:
+    """SHA-256 one-way hash of raw session UUID. Raw UUID never stored or traced."""
+    return hashlib.sha256(raw.encode()).hexdigest()[:16]
 
 import streamlit as st
 from dotenv import load_dotenv
@@ -119,7 +137,7 @@ def _init_session() -> None:
     if "graph" not in st.session_state:
         from langgraph.checkpoint.memory import MemorySaver
         st.session_state.graph     = build_graph(checkpointer=MemorySaver())
-        st.session_state.thread_id = str(uuid4())
+        st.session_state.thread_id = _pseudonymise(str(uuid4()))
         st.session_state.messages  = []
         st.session_state.routes    = []
 
@@ -192,7 +210,7 @@ def _handle_hitl() -> bool:
         discarded = col2.form_submit_button("❌ Discard",         use_container_width=True)
 
     if approved:
-        st.session_state.messages.append({"role": "assistant", "content": edited})
+        st.session_state.messages.append({"role": "assistant", "content": _sanitise(edited)})
         st.session_state.routes.append(pending["route_label"])
         del st.session_state.pending_hitl
         st.rerun()
@@ -249,9 +267,10 @@ def main() -> None:
                 }
                 st.rerun()
             else:
-                placeholder.markdown(result["response"])
+                safe_response = _sanitise(result["response"])
+                placeholder.markdown(safe_response)
                 st.caption(route_label)
-                st.session_state.messages.append({"role": "assistant", "content": result["response"]})
+                st.session_state.messages.append({"role": "assistant", "content": safe_response})
                 st.session_state.routes.append(route_label)
 
 

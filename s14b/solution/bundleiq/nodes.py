@@ -17,6 +17,7 @@ S6 exclusion — BundleIQ passes S6-only findings through to the router:
   escalate → TeleConnect advisor. Blocking at the guard gives worse UX.
   We block on all other categories (S1–S5, S7–S13).
 """
+import base64
 import re
 import sqlite3
 import unicodedata
@@ -57,6 +58,32 @@ _INVISIBLE_UNICODE_RE = re.compile(
 # ---------------------------------------------------------------------------
 # S14b: Input Guard
 # ---------------------------------------------------------------------------
+
+def _try_decode(text: str) -> str:
+    """Decode Base64 or hex-encoded text before guard checks.
+    Catches obfuscation attacks like base64("ignore previous instructions").
+    Returns decoded text if decoding succeeds and changes the input; original text otherwise.
+    """
+    stripped = text.strip()
+    # Base64
+    try:
+        padding = (4 - len(stripped) % 4) % 4
+        decoded = base64.b64decode(stripped + "=" * padding).decode("utf-8", errors="strict")
+        if decoded != stripped and len(decoded) >= 8 and decoded.isprintable():
+            return decoded
+    except Exception:
+        pass
+    # Hex
+    try:
+        hex_clean = stripped.replace(" ", "")
+        if len(hex_clean) >= 16 and all(c in "0123456789abcdefABCDEF" for c in hex_clean):
+            decoded = bytes.fromhex(hex_clean).decode("utf-8", errors="strict")
+            if decoded.isprintable():
+                return decoded
+    except Exception:
+        pass
+    return text
+
 
 def _llamaguard_safe(message: str) -> bool:
     """Call LlamaGuard 3 8B and return True if the message is safe.
@@ -108,6 +135,11 @@ def guard(state: BundleIQState) -> dict:
     """
     raw = state["customer_message"]
     msg = unicodedata.normalize("NFKD", raw)
+
+    decoded = _try_decode(msg)
+    if decoded != msg:
+        print(f"[BundleIQ] Guard: obfuscated input decoded ({len(msg)}→{len(decoded)} chars)")
+        msg = decoded
 
     for rx in _pii_compiled:
         if rx.search(msg):
@@ -250,11 +282,11 @@ def _load_valid_prices() -> set:
 
 
 def _extract_prices(text: str) -> list:
-    matches = re.findall(r"(?:Rs\.|₹)\s*(\d+(?:,\d+)*)", text, re.IGNORECASE)
+    matches = re.findall(r"(?:Rs\.|₹)\s*(\d+(?:,\d+)*(?:\.\d+)?)", text, re.IGNORECASE)
     result = []
     for m in matches:
         try:
-            result.append(int(m.replace(",", "")))
+            result.append(round(float(m.replace(",", ""))))
         except ValueError:
             pass
     return result
