@@ -144,14 +144,14 @@ DECLINE_RESPONSE = (
     "BundleIQ | TeleConnect India"
 )
 
-DATA_DIR        = Path(__file__).parent.parent.parent.parent / "data"
+DATA_DIR        = Path(__file__).resolve().parent.parent.parent.parent / "data"
 DB_PATH         = DATA_DIR / "teleconnect_data.db"
 CHECKPOINT_DB   = DATA_DIR / "checkpoints.db"
 VECTORSTORE_DIR = DATA_DIR / "vectorstore"
 EMBED_MODEL     = "all-MiniLM-L6-v2"
 RETRIEVAL_K     = 2
 
-MCP_SERVER_PATH = Path(__file__).parent.parent.parent.parent / "s07" / "solution" / "mcp_server.py"
+MCP_SERVER_PATH = Path(__file__).resolve().parent.parent.parent.parent / "s07" / "solution" / "mcp_server.py"
 
 BUNDLEIQ_BANNED_PHRASES = [
     "guaranteed coverage",
