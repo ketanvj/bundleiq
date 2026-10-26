@@ -1,6 +1,0 @@
-{
-  "graphs": {
-    "bundleiq": "bundleiq.agent:graph"
-  },
-  "env": ".env"
-}
